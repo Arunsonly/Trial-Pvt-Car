@@ -46,7 +46,8 @@ function calcQuote(){
  const vehicleIDV=Math.max(0,+state.idv||0), eav=Math.max(0,+state.elecIdv||0), nonElec=Math.max(0,+state.nonElecIdv||0), extCngValue=state.externalCng?Math.max(0,+state.cngIdv||0):0;
  const IDV1=vehicleIDV+nonElec+eav;
  const cc=+(state.cc||0), age=vehicleAge(), diesel=state.fuel==='Diesel';
- const IDV=vehicleIDV+nonElec;\n const odBase=IDV*odRate();
+ const IDV=vehicleIDV+nonElec;
+ const odBase=IDV*odRate();
  const eavPremium=eav*.04;
  const OD1=odBase+eavPremium;
  const externalCngPremium=extCngValue*.04;
