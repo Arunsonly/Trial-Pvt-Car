@@ -60,5 +60,5 @@ function next(){sync();if(state.steps===0){if(!state.kind){alert('Please select 
 if(state.steps===3){let p=plans();if(!p.some(x=>x[0]===state.plan)){state.plan=p[0][0]}}
 if(state.steps===7){alert('Quote is ready. Use Print / Save PDF or Save quote draft.');return}go(state.steps+1)}
 function saveDraft(){sync();let data={...state,calculation:calcQuote(),savedAt:new Date().toISOString()};let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='trial-pvt-car-quote.json';a.click();URL.revokeObjectURL(a.href)}
-$('backBtn').addEventListener('click',()=>go(state.steps-1));$('nextBtn').addEventListener('click',next);render();
+$('backBtn').addEventListener('click',()=>go(state.steps-1));$('nextBtn').addEventListener('click',next);document.addEventListener('change',e=>{if(state.steps===0&&['fuel','externalCng'].includes(e.target.id)){sync();render()}else if(state.steps===4&&e.target.id&&e.target.id.startsWith('cov_')){sync();render()}});render();
 </script></body></html>
