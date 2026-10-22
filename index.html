@@ -46,7 +46,7 @@ function calcQuote(){
  const vehicleIDV=Math.max(0,+state.idv||0), eav=Math.max(0,+state.elecIdv||0), nonElec=Math.max(0,+state.nonElecIdv||0), extCngValue=state.externalCng?Math.max(0,+state.cngIdv||0):0;
  const IDV1=vehicleIDV+nonElec+eav;
  const cc=+(state.cc||0), age=vehicleAge(), diesel=state.fuel==='Diesel';
- const odBase=vehicleIDV*odRate();
+ const IDV=vehicleIDV+nonElec;\n const odBase=IDV*odRate();
  const eavPremium=eav*.04;
  const OD1=odBase+eavPremium;
  const externalCngPremium=extCngValue*.04;
@@ -56,10 +56,10 @@ function calcQuote(){
  const nilRates=[[.0037,.0056],[.0059,.0085],[.0087,.0113],[.011,.0138],[.0117,.0149],[.0144,.021],[.0172,.0245]];
  const nilDep=state.covers.nildep?IDV1*nilRates[ageIndex][diesel?1:0]:0;
  const consumable=state.covers.consumable?IDV1*(age<=1?.001:age<=3?.0011:age<=5?.0014:0):0;
- const rti=state.covers.rti?vehicleIDV*([.003,.004,.006][Math.min(2,Math.max(0,Math.round(age||0)-1))]||.003):0;
+ const rti=state.covers.rti?IDV*([.003,.004,.006][Math.min(2,Math.max(0,Math.round(age||0)-1))]||.003):0;
  const tyreRim=state.covers.tyre?Math.max(0,+state.invoiceValue||0)*.002:0;
  const epcRates=[[.0016,.0019],[.0018,.0022],[.0021,.0025],[.0025,.003],[.003,.0037],[.0018,.0022]];
- const EPC1=state.covers.engine?vehicleIDV*epcRates[Math.min(ageBand(),5)][diesel?1:0]:0;
+ const EPC1=state.covers.engine?IDV*epcRates[Math.min(ageBand(),5)][diesel?1:0]:0;
  const netEpcRate=(+state.epcNetRate||0)/100; // One net adjustment only: positive = discount, negative = loading.
  const epcNetAdjustmentAmount=EPC1*Math.abs(netEpcRate)*(1-ncbRate);
  const epcPremium=netEpcRate>0?EPC1-epcNetAdjustmentAmount:netEpcRate<0?EPC1+epcNetAdjustmentAmount:EPC1;
@@ -83,16 +83,29 @@ function calcQuote(){
  const cpa=state.ownerCPA?(state.cpaYears===3?900:320):0;
  const ncbBase=Math.max(0,OD2+EPC1+rti+personalEffects+geo+altCar+inbuiltCng-antiTheft-uwDiscount);
  const ncbAmount=ncbBase*ncbRate;
- const additions=OD2+nilDep+consumable+rti+tyreRim+epc+inbuiltCng+tp+cpa+altCar+personalEffects+emi+key+towing+payd+battery+tyreRim;
+ const additions=OD2+nilDep+consumable+rti+tyreRim+epc+inbuiltCng+tp+cpa+altCar+personalEffects+emi+key+towing+payd+battery;
  const totalBeforeGST=Math.max(0,additions-ncbAmount-antiTheft-uwDiscount);
  const gst=totalBeforeGST*.18;
  return {vehicleIDV,eav,nonElec,extCngValue,IDV1,odBase,eavPremium,OD1,externalCngPremium,OD2,nilDep,consumable,rti,tyreRim,EPC1,epcDiscountLoadingAmount,epcPremium,uwDiscount,inbuiltCng,antiTheft,ncbBase,ncbAmount,tp,cpa,altCar,personalEffects,emi,key,towing,payd,battery,geo,additions,totalBeforeGST,gst,total:totalBeforeGST+gst};
 }
 function quotePage(){let q=calcQuote();let rows=[
 ['Vehicle IDV',q.vehicleIDV],['Non-electrical accessories value',q.nonElec],['Electrical accessories value (EAV)',q.eav],['IDV 1 = Vehicle IDV + non-electric accessories + EAV',q.IDV1],
-['Basic OD premium = Vehicle IDV × rate',q.odBase],['Electrical accessories premium = EAV × 4%',q.eavPremium],['OD 1 = Basic OD + EAV premium',q.OD1],['External CNG premium = value × 4%',q.externalCngPremium],['OD 2 = OD 1 + external CNG premium',q.OD2],
-['Nil depreciation = IDV 1 × rate',q.nilDep],['Consumables = IDV 1 × rate',q.consumable],['RTI = Vehicle IDV × rate',q.rti],['Tyre & Rim = invoice value × rate',q.tyreRim],['EPC 1 = Vehicle IDV × EPC rate',q.EPC1],['EPC net discount/loading amount',q.epcDiscountLoadingAmount],['EPC premium',q.epcPremium],['In-built CNG',q.inbuiltCng],['U/W discount = OD 2 × rate',-q.uwDiscount],['Anti-theft discount (max ₹500)',-q.antiTheft],['NCB calculation base',q.ncbBase],['NCB discount',-q.ncbAmount],['Third-party premium (indicative)',q.tp],['Owner-driver CPA',q.cpa],['Personal effects',q.personalEffects],['Alternative car',q.altCar],['Other selected covers',q.consumable+q.rti+q.tyreRim+q.emi+q.key+q.towing+q.payd+q.battery],['Net premium before GST',q.totalBeforeGST],['GST (18%)',q.gst]];
+['Basic OD premium = IDV (vehicle + non-electric accessories) × rate',q.odBase],['Electrical accessories premium = EAV × 4%',q.eavPremium],['OD 1 = Basic OD + EAV premium',q.OD1],['External CNG premium = value × 4%',q.externalCngPremium],['OD 2 = OD 1 + external CNG premium',q.OD2],
+['Nil depreciation = IDV 1 × rate',q.nilDep],['Consumables = IDV 1 × rate',q.consumable],['RTI = IDV × rate',q.rti],['Tyre & Rim = invoice value × rate',q.tyreRim],['EPC 1 = IDV × EPC rate',q.EPC1],['EPC net discount/loading amount',q.epcDiscountLoadingAmount],['EPC premium',q.epcPremium],['In-built CNG',q.inbuiltCng],['U/W discount = OD 2 × rate',-q.uwDiscount],['Anti-theft discount (max ₹500)',-q.antiTheft],['NCB calculation base',q.ncbBase],['NCB discount',-q.ncbAmount],['Third-party premium (indicative)',q.tp],['Owner-driver CPA',q.cpa],['Personal effects',q.personalEffects],['Alternative car',q.altCar],['Other selected covers',q.consumable+q.rti+q.tyreRim+q.emi+q.key+q.towing+q.payd+q.battery],['Net premium before GST',q.totalBeforeGST],['GST (18%)',q.gst]];
 return '<section class="card"><button class="backtop" onclick="go(6)">← Back</button><div class="sectionHead"><span>STEP 8</span><h3>Premium quotation</h3></div><p class="sub">Breakdown follows your defined IDV 1, OD 1, OD 2 and NCB formula references.</p><div class="subfields"><div class="muted">Estimated premium payable</div><div class="amount">'+money(q.total)+'</div><div class="muted">Plan: '+esc((plans().find(p=>p[0]===state.plan)||[])[1]||'Not selected')+'</div></div><div class="breakdown" style="margin-top:14px"><div class="head">Premium component</div><div class="head">Amount</div>'+rows.map(r=>'<div>'+esc(r[0])+'</div><div style="text-align:right;font-weight:750">'+(r[1]<0?'− ':'')+money(Math.abs(r[1]))+'</div>').join('')+'<div class="sum">Total premium payable (including GST)</div><div class="sum" style="text-align:right">'+money(q.total)+'</div></div><div class="note">Trial calculation based on the formula instructions supplied. Rates and policy eligibility still require tariff verification. Geographic extension is not included in the total until its rate is supplied. Third-party and bundle rates are indicative from the screenshot.</div><div class="actions"><button class="btn" style="background:#e8f0ff;color:#154f97;flex:1" onclick="window.print()">Print / Save PDF</button><button class="btn" style="background:#eaf7f0;color:#176046;flex:1" onclick="saveDraft()">Save quote draft</button></div></section>'}
+function render(){
+ const titles=['Select vehicle type','Eligible No Claim Bonus (NCB)','Vehicle Value (IDV)','Choose your plan','Choose your coverage','Other coverage / Liability & PA','Discounts and underwriting','Premium quotation'];
+ const descs=['Build a quote step by step using the supplied formula and rating tables.','Choose eligible NCB based on previous policy and claim history.','Enter vehicle IDV and accessories; totals update automatically.','Choose the policy type available for this vehicle.','Select the optional covers you need.','Enter liability and personal accident details.','Apply eligible discounts or loading.','Review the premium breakdown and save or print your quote.'];
+ const views=[vehiclePage,ncbPage,idvPage,planPage,coverPage,otherPage,discountPage,quotePage];
+ $('pageTitle').textContent=titles[state.steps]||titles[0];
+ $('pageDesc').textContent=descs[state.steps]||descs[0];
+ $('progress').innerHTML=pages.map((p,i)=>'<div class="prog '+(i===state.steps?'active':'')+'">'+(i+1)+'. '+esc(p)+'</div>').join('');
+ $('screen').innerHTML=views[state.steps]();
+ $('backBtn').disabled=state.steps===0;
+ $('backBtn').style.opacity=state.steps===0?'.45':'1';
+ $('nextBtn').textContent=state.steps===7?'Finish':'Continue →';
+ if(state.steps===7)$('nextBtn').classList.add('hidden');else $('nextBtn').classList.remove('hidden');
+}
 function sync(){if(state.steps===0){if($('regdate'))state.regdate=$('regdate').value;if($('zone'))state.zone=$('zone').value;if($('fuel'))state.fuel=$('fuel').value;if($('cc'))state.cc=$('cc').value;if($('externalCng'))state.externalCng=$('externalCng').checked}
 if(state.steps===1){let n=document.querySelector('input[name="ncb"]:checked');if(n)state.ncb=+n.value}
 if(state.steps===2){['idv','cngIdv','elecIdv','nonElecIdv','invoiceValue'].forEach(k=>{if($(k))state[k]=Math.max(0,+$(k).value||0)})}
